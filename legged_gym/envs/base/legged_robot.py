@@ -224,6 +224,35 @@ class LeggedRobot(BaseTask):
         # add noise if needed
         if self.add_noise:
             self.obs_buf += (2 * torch.rand_like(self.obs_buf) - 1) * self.noise_scale_vec
+                # --- GOD MODE BLOCK (FINAL FIX) ---
+        if self.num_privileged_obs is not None:
+            # FORCE RESHAPE to (N, 1) or (N, 3) to strictly ensure 2D dimensions
+            
+            # Friction: Force to (1024, 1)
+            friction = self.friction_coeffs.reshape(self.num_envs, 1).to(self.device)
+            
+            # Mass: Force to (1024, 1)
+            if hasattr(self, 'payloads'):
+                mass = self.payloads.reshape(self.num_envs, 1).to(self.device)
+            else:
+                mass = torch.zeros(self.num_envs, 1, device=self.device)
+
+            # Pushes: Force to (1024, 3)
+            if hasattr(self, 'push_velocities'):
+                pushes = self.push_velocities.reshape(self.num_envs, 3).to(self.device)
+            else:
+                pushes = torch.zeros(self.num_envs, 3, device=self.device)
+            
+            # Combine (Total size = 48 + 1 + 1 + 3 = 53)
+            self.privileged_obs_buf = torch.cat((
+                self.obs_buf.to(self.device), 
+                friction, 
+                mass * 0.1, 
+                pushes
+            ), dim=-1)
+        # ----------------------------------
+
+
 
     def create_sim(self):
         """ Creates simulation, terrain and evironments
