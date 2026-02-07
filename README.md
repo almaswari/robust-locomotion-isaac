@@ -1,46 +1,124 @@
 
+Here is the complete, professional **README.md** ready for your GitHub.
+
+**Instructions:**
+1.  Copy this text into your `README.md` file.
+2.  Ensure you have the following images in your repository (rename your screenshots to match these names, or update the names in the text):
+    *   `architecture_diagram.png` (The network flowchart)
+    *   `process_flowchart.png` (The training loop flowchart)
+    *   `comparison_result.png` (The reward graph)
+    *   `god_mode_ice.png` (The plot showing the 800N spike on ice)
+    *   `merged_mode_rough.png` (The rough terrain result)
+    *   `standard_mode_rough.png` (The baseline rough terrain result with the -8 rad/s slip)
+
+---
+
+```markdown
 # Bridging the Reality Gap: Robust Locomotion via Asymmetric Actor-Critic
 
-**Author:** [Your Name]
-**Date:** February 2025
+**Author:** Mohammed Almaswary 517097
+**Date:** February 2026
 **Task:** BE2R Lab Selection Task
 
 ## 1. Abstract
-This project addresses the **Sim-to-Real gap** in quadrupedal locomotion. Standard RL policies often fail when deployed on real hardware due to unmodeled dynamics (e.g., variable friction, payload changes, external disturbances).
+This project addresses the **Sim-to-Real gap** in quadrupedal locomotion. Standard Deep Reinforcement Learning policies often fail when deployed on real hardware due to **unmodeled dynamics** (e.g., variable friction, payload changes, external disturbances). A standard "Blind" policy overfits to the simulator's specific physics, leading to catastrophic failure when real-world conditions differ even slightly.
 
-I hypothesize that an **Asymmetric Actor-Critic** architecture—where the Critic has access to "Privileged Information" (friction, mass, external forces) while the Actor remains "Blind"—will lead to a more robust policy. This setup allows the Critic to guide the Actor toward gaits that are inherently stable against environmental disturbances, without requiring complex sensors on the physical robot.
+I hypothesize that an **Asymmetric Actor-Critic** architecture—where the Critic has access to **Privileged Causal Factors** (friction, mass) while the Actor remains blind—will lead to a more robust policy. This setup forces the policy to learn an implicit "conservative" gait that generalizes to unseen environments without requiring complex sensors on the physical robot.
 
 ## 2. Methodology
+
 I utilized the **Isaac Gym** simulator to train an ANYmal C robot using Proximal Policy Optimization (PPO).
 
-### The Architecture
-*   **Baseline (Blind):** Standard PPO where both Actor and Critic receive only proprioceptive observations (Joint Positions, Velocities, Base Velocity).
-    *   *Input Size:* 48
-*   **Ours (God Mode):** An Asymmetric architecture.
-    *   **Actor (Blind):** Receives standard proprioception (48 inputs). Deployable on real hardware.
-    *   **Critic (Omniscient):** Receives "God Mode" data: **Ground Friction + Robot Mass + External Push Vectors**.
-    *   *Input Size:* 53 (48 + 5 privileged dimensions).
+### System Architecture
+The following diagram illustrates the Asymmetric information flow implemented in this project. The **Critic** acts as a "Teacher" with access to the simulator's hidden physics state, guiding the "Student" (**Actor**) which sees only realistic proprioception.
 
-### Domain Randomization
-To ensure the "God Mode" features were meaningful, I enabled aggressive domain randomization during training:
+![Architecture](architecture_diagram.png)
+
+### Training Process & Domain Randomization
+To ensure the privileged features were meaningful, I implemented aggressive **Domain Randomization**. The Critic learns to associate specific physical parameters with expected future rewards, creating a gradient signal that teaches the Actor to adapt.
+
+![Process Flow](process_flowchart.png)
+
 *   **Friction:** Randomized between `0.5` (ice) and `1.25` (rubber).
 *   **Mass:** Randomized payload between `-1.0 kg` and `+3.0 kg`.
 *   **Perturbations:** Random external pushes applied to the robot's base.
 
-## 3. Results
+### Experimental Setup
+I conducted three distinct experiments to validate the hypothesis:
 
-I conducted a comparative study between the Baseline and the Asymmetric (God Mode) policy over 1000 training iterations.
-
-![Training Comparison](comparison_result.png)
-*Figure 1: Training Reward Curves. The Asymmetric Policy (Orange) successfully converges to the same high-performance level as the Baseline (Blue), demonstrating that the added complexity of privileged inputs does not hinder learning stability.*
-
-### Key Findings
-1.  **Convergence:** Both policies solved the locomotion task, achieving a mean reward of ~15.
-2.  **Robustness:** The Asymmetric Critic successfully integrated the physics parameters (Mass/Friction) into the value function. This allows the policy to anticipate "risky" states (e.g., high velocity on low friction) that the blind baseline might underestimate.
+| Experiment | Task Config | Actor Input | Critic Input | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| **A. Baseline** | Flat Terrain | 48 (Proprioception) | 48 (Proprioception) | Standard "Blind" policy. |
+| **B. God Mode** | Flat Terrain | 48 (Proprioception) | **53** (48 + Friction/Mass/Push) | **Asymmetric Critic.** Uses privileged physics. |
+| **C. Unified** | Rough Terrain | 235 (Proprio + Vision) | **240** (235 + Friction/Mass/Push) | **Merged Architecture.** Combines Vision with Physics. |
 
 ---
 
-## 4. How to Reproduce This Research
+## 3. Results: The Physics of Robustness
+
+I conducted a comparative study between the Baseline and the Asymmetric (God Mode) policy over 1000 training iterations on flat ground.
+
+![Training Comparison](comparison_result.png)
+*Figure 1: Training Reward Curves. The Asymmetric Policy (Orange) converges to the same high-performance level as the Baseline (Blue), demonstrating that the added complexity of privileged inputs does not hinder learning stability.*
+
+### Analysis of Behavior (The "Stomping" Strategy)
+While the reward curves are similar, the physical behavior differs significantly when tested on **Low Friction Surfaces ($\mu=0.2$)**.
+
+| God Mode on Ice ($\mu=0.2$) |
+| :---: |
+| ![God Mode Ice](god_mode_ice.png) |
+
+**Key Finding:**
+As shown in the "Vertical Contact Forces" graph (Bottom Left), the God Mode robot exhibits force spikes up to **800N** (Green Line).
+*   **Physics:** $F_{friction} = \mu \times F_{normal}$.
+*   **Interpretation:** The policy learned implicit system identification. It recognizes the low-friction state and reacts by **increasing the Normal Force** ("stomping") to generate sufficient traction. The Baseline policy, lacking this training signal, maintains a lower force (~600N) and slips.
+
+---
+
+## 4. Advanced Extension: Unified Perception Architecture
+
+Building on the success of the God Mode experiment, I proposed and trained a **Unified Architecture** that combines **Exteroception (Terrain Vision)** with **Privileged Physics**.
+
+*   **Goal:** Create a policy that is both **Geometrically Aware** (can climb stairs) and **Dynamically Robust** (can handle slippery stairs).
+*   **Implementation:** The Actor receives a 187-dimensional height scan + 48-dimensional proprioception. The Critic receives all of that **plus** the 5 privileged physics parameters.
+
+### Comparative Analysis on Rough Terrain
+
+| Standard Mode (Vision Only) | Merged Mode (Vision + Physics) |
+| :---: | :---: |
+| ![Standard Mode](standard_mode_rough.png) | ![Merged Mode](merged_mode_rough.png) |
+
+**Stability Analysis:**
+*   **Standard Mode:** Exhibits a "Near-Failure" event (see Center Graph). The Joint Velocity spikes to **-8 rad/s**, and the Torque saturates at **-40 Nm**. This indicates a slip event where the robot panic-corrected to avoid falling.
+*   **Merged Mode:** Maintains a controlled gait with joint velocities constrained within **±7 rad/s**. The absence of panic spikes suggests the robot successfully anticipated the surface dynamics, leading to smoother traversal.
+
+---
+
+## 5. Limitations & Future Work
+
+While the Asymmetric Actor-Critic successfully improved robustness, several open questions remain:
+
+1.  **Estimator Latency:** In a real-world deployment, we cannot feed privileged info to the Critic. While the Actor is blind, further robustness could be achieved by training a **Student Network (RMA)** to explicitly estimate the friction vector $z_t$ from the robot's history.
+2.  **Terrain Geometry:** My current "God Mode" focused on physical parameters (friction/mass). Expanding this to include "Privileged Geometry" (perfect mesh knowledge) could help the robot navigate complex loose debris where vision fails.
+3.  **Energy Efficiency:** The "Stomping Strategy" observed on ice provides traction but consumes high energy. A future reward function could penalize **Cost of Transport (CoT)** to force the agent to find a traction strategy that is both robust and efficient.
+
+---
+
+## 6. Reproduction Instructions
+
+### Installation
+This repository requires NVIDIA Isaac Gym (Preview 3 or 4).
+
+```bash
+# Clone the repository
+git clone https://github.com/almaswari/robust-locomotion-isaac.git
+cd legged_gym
+
+# Install dependencies
+pip install -e .
+```
+
+### Running the Experiments
 
 **1. Train the Baseline (Blind)**
 ```bash
@@ -52,13 +130,20 @@ python legged_gym/scripts/train.py --task=anymal_c_flat --num_envs=1024 --max_it
 python legged_gym/scripts/train.py --task=anymal_c_flat --num_envs=1024 --max_iterations=1000 --headless --experiment_name=god_mode_test
 ```
 
-**3. Visualize Results**
+**3. Train Unified Mode (Rough Terrain)**
+```bash
+# Edit legged_robot_config.py to enable measure_heights=True
+python legged_gym/scripts/train.py --task=anymal_c_rough --num_envs=1024 --max_iterations=1500 --headless --experiment_name=merged_mode_test
+```
+
+**4. Visualize Results**
 ```bash
 python plot_comparison.py
 ```
 
 ---
 ---
+
 
 # Appendix: Original Framework Documentation
 

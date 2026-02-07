@@ -62,7 +62,13 @@ This is required for WSL to find CUDA libraries.
 
 to run the tranied model 
 ```bash
-python legged_gym/scripts/play.py --task=a1 --num_envs=1 --load_run Feb03_04-14-39_ 
+python legged_gym/scripts/play.py --task=a1 --num_envs=1 --load_run Feb03_04-14-39_
+```
+or 
+
+```bash
+python legged_gym/scripts/play.py --task=anymal_c_rough --num_envs=5 --experiment_name=merged_mode_test
+
 ```
 ```bash
 --load_run Feb03_00-38-34_ # this the model name
