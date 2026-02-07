@@ -1,23 +1,10 @@
 
-Here is the complete, professional **README.md** ready for your GitHub.
-
-**Instructions:**
-1.  Copy this text into your `README.md` file.
-2.  Ensure you have the following images in your repository (rename your screenshots to match these names, or update the names in the text):
-    *   `architecture_diagram.png` (The network flowchart)
-    *   `process_flowchart.png` (The training loop flowchart)
-    *   `comparison_result.png` (The reward graph)
-    *   `god_mode_ice.png` (The plot showing the 800N spike on ice)
-    *   `merged_mode_rough.png` (The rough terrain result)
-    *   `standard_mode_rough.png` (The baseline rough terrain result with the -8 rad/s slip)
-
----
-
-```markdown
 # Bridging the Reality Gap: Robust Locomotion via Asymmetric Actor-Critic
 
 **Author:** Mohammed Almaswary 517097
+
 **Date:** February 2026
+
 **Task:** BE2R Lab Selection Task
 
 ## 1. Abstract
