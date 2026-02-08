@@ -3,15 +3,15 @@
 
 **Author:** Mohammed Almaswary 
 
+**M.Sc. Robotics and Artificial intelligence**
+
+**ITMO University**
+
 **ID:** 517097
 
-**University:** ITMO
+**BE2R Lab Selection Task**
 
-**Major:** M.Sc. Robotics and Artificial intelligence 
-
-**Task:** BE2R Lab Selection Task
-
-**Date:** February 2026
+**February 2026**
 
 
 
@@ -135,6 +135,13 @@ python legged_gym/scripts/train.py --task=anymal_c_rough --num_envs=1024 --max_i
 ```bash
 python plot_comparison.py
 ```
+---
+## 7. References
+
+1.  **Rudin, N., Hoeller, D., Reist, P., & Hutter, M. (2022).** *Learning to Walk in Minutes Using Massively Parallel Deep Reinforcement Learning.* CoRL.
+    *   *Role in this project:* Provided the PPO baseline and the Isaac Gym environment structure.
+2.  **Lee, J., et al. (2020).** *Learning Quadrupedal Locomotion over Challenging Terrain.* Science Robotics.
+    *   *Role in this project:* Inspired the concept of "privileged learning" for robust locomotion.
 
 ---
 ---
