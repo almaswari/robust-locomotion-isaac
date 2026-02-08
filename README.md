@@ -1,11 +1,19 @@
 
 # Bridging the Reality Gap: Robust Locomotion via Asymmetric Actor-Critic
 
-**Author:** Mohammed Almaswary 517097
+**Author:** Mohammed Almaswary 
+
+**ID:** 517097
+
+**University:** ITMO
+
+**Major:** M.Sc. Robotics and Artificial intelligence 
+
+**Task:** BE2R Lab Selection Task
 
 **Date:** February 2026
 
-**Task:** BE2R Lab Selection Task
+
 
 ## 1. Abstract
 This project addresses the **Sim-to-Real gap** in quadrupedal locomotion. Standard Deep Reinforcement Learning policies often fail when deployed on real hardware due to **unmodeled dynamics** (e.g., variable friction, payload changes, external disturbances). A standard "Blind" policy overfits to the simulator's specific physics, leading to catastrophic failure when real-world conditions differ even slightly.
